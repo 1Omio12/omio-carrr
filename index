@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESP32 Car Control</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+    button { padding: 10px 20px; margin: 5px; font-size: 16px; }
+    .control-group { margin: 20px 0; }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js" type="text/javascript"></script>
+</head>
+<body>
+  <h1>ESP32 Car Control</h1>
+
+  <div class="control-group">
+    <h2>Movement</h2>
+    <button onmousedown="sendCommand('forward_start')" onmouseup="sendCommand('stop')" ontouchstart="sendCommand('forward_start')" ontouchend="sendCommand('stop')">Forward</button>
+    <button onmousedown="sendCommand('backward_start')" onmouseup="sendCommand('stop')" ontouchstart="sendCommand('backward_start')" ontouchend="sendCommand('stop')">Backward</button>
+  </div>
+
+  <div class="control-group">
+    <h2>Servo 1</h2>
+    <button onmousedown="sendCommand('servo1_left_start')" onmouseup="sendCommand('servo1_stop')" ontouchstart="sendCommand('servo1_left_start')" ontouchend="sendCommand('servo1_stop')">Left</button>
+    <button onmousedown="sendCommand('servo1_right_start')" onmouseup="sendCommand('servo1_stop')" ontouchstart="sendCommand('servo1_right_start')" ontouchend="sendCommand('servo1_stop')">Right</button>
+  </div>
+
+  <div class="control-group">
+    <h2>Servo 2</h2>
+    <button onmousedown="sendCommand('servo2_left_start')" onmouseup="sendCommand('servo2_stop')" ontouchstart="sendCommand('servo2_left_start')" ontouchend="sendCommand('servo2_stop')">Left</button>
+    <button onmousedown="sendCommand('servo2_right_start')" onmouseup="sendCommand('servo2_stop')" ontouchstart="sendCommand('servo2_right_start')" ontouchend="sendCommand('servo2_stop')">Right</button>
+  </div>
+
+  <div class="control-group">
+    <h2>Speed</h2>
+    <input type="range" id="speedSlider" min="0" max="255" value="255" oninput="sendSpeed(this.value)">
+  </div>
+
+  <div class="control-group">
+    <button onclick="sendCommand('reset')">Reset Servos</button>
+  </div>
+
+  <script>
+    const client = new Paho.MQTT.Client('broker.hivemq.com', 8000, 'web_' + Math.random().toString(16).substr(2, 8));
+    const password = 'mysecretpassword'; // Must match ESP32 password
+
+    client.connect({
+      onSuccess: () => console.log('Connected to MQTT broker'),
+      onFailure: (err) => console.log('Connection failed:', err)
+    });
+
+    function sendCommand(command) {
+      const message = new Paho.MQTT.Message(`${password}:${command}`);
+      message.destinationName = 'mycar/1234/command';
+      client.send(message);
+      console.log(`Sent: ${command}`);
+    }
+
+    function sendSpeed(value) {
+      const message = new Paho.MQTT.Message(`${password}:speed_${value}`);
+      message.destinationName = 'mycar/1234/command';
+      client.send(message);
+      console.log(`Sent speed: ${value}`);
+    }
+  </script>
+</body>
+</html>
